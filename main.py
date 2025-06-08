@@ -4,7 +4,7 @@ import random
 import json # Para o arquivo de texto de pontuações
 import os   # Para verificar a existência do arquivo
 from datetime import datetime
-
+print("Inicializando o jogo...")
 pygame.init()
 
 WIDTH, HEIGHT = 1000, 700
