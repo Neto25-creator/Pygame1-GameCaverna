@@ -1,0 +1,46 @@
+{
+    "high_score": {
+        "name": "enio",
+        "score": 6,
+        "coins": 1,
+        "data": "08/06/2025",
+        "hora": "19:21:12"
+    },
+    "recent_scores": [
+        {
+            "name": "enio",
+            "score": 6,
+            "coins": 1,
+            "data": "08/06/2025",
+            "hora": "19:21:12"
+        },
+        {
+            "name": "enio1",
+            "score": 5,
+            "coins": 1,
+            "data": "05/06/2025",
+            "hora": "20:50:23"
+        },
+        {
+            "name": "murilo",
+            "score": 5,
+            "coins": 1,
+            "data": "05/06/2025",
+            "hora": "20:49:53"
+        },
+        {
+            "name": "murilo",
+            "score": 0,
+            "coins": 0,
+            "data": "05/06/2025",
+            "hora": "20:49:08"
+        },
+        {
+            "name": "asdaw",
+            "score": 0,
+            "coins": 0,
+            "data": "04/06/2025",
+            "hora": "21:57:24"
+        }
+    ]
+}
