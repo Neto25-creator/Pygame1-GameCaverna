@@ -1,46 +1,46 @@
 {
     "high_score": {
-        "name": "teste",
-        "score": 9,
+        "name": "wdawddawdasda",
+        "score": 15,
         "coins": 2,
-        "data": "08/06/2025",
-        "hora": "19:34:28"
+        "data": "12/06/2025",
+        "hora": "19:13:31"
     },
     "recent_scores": [
         {
-            "name": "teste",
-            "score": 9,
+            "name": "da",
+            "score": 8,
             "coins": 2,
-            "data": "08/06/2025",
-            "hora": "19:34:28"
+            "data": "15/06/2025",
+            "hora": "19:30:59"
         },
         {
-            "name": "teste",
+            "name": "da",
+            "score": 8,
+            "coins": 2,
+            "data": "15/06/2025",
+            "hora": "19:30:43"
+        },
+        {
+            "name": "awd",
+            "score": 4,
+            "coins": 1,
+            "data": "15/06/2025",
+            "hora": "19:29:37"
+        },
+        {
+            "name": "dsadwad",
+            "score": 11,
+            "coins": 2,
+            "data": "15/06/2025",
+            "hora": "18:58:34"
+        },
+        {
+            "name": "dsadwad",
             "score": 5,
             "coins": 1,
-            "data": "08/06/2025",
-            "hora": "19:34:20"
-        },
-        {
-            "name": "enio",
-            "score": 6,
-            "coins": 1,
-            "data": "08/06/2025",
-            "hora": "19:21:12"
-        },
-        {
-            "name": "enio1",
-            "score": 5,
-            "coins": 1,
-            "data": "05/06/2025",
-            "hora": "20:50:23"
-        },
-        {
-            "name": "murilo",
-            "score": 5,
-            "coins": 1,
-            "data": "05/06/2025",
-            "hora": "20:49:53"
+            "data": "15/06/2025",
+            "hora": "18:58:13"
         }
     ]
 }

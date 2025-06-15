@@ -1,33 +1,37 @@
 import pygame
 import sys
+import math
 import random
 import json # Para o arquivo de texto de pontuações
 import os   # Para verificar a existência do arquivo
 from datetime import datetime
-print("Inicializando o jogo...")
 pygame.init()
 
+#exigencia = importar uma função de outro arquivo: 
+from recursos.ola import dizer_ola 
+dizer_ola()
+
+# Definições de Tela e Variáveis Globais
 WIDTH, HEIGHT = 1000, 700
 PLAYER_SPEED = 8
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Plataforma Vertical")
-
 # Carregamento de Imagens 
 try:
-    background_image_game = pygame.image.load("mainImages/caverna.png").convert() # Renomeado para clareza
+    background_image_game = pygame.image.load("recursos/mainImages/caverna.png").convert() # Renomeado para clareza
     background_image_game = pygame.transform.scale(background_image_game, (WIDTH, HEIGHT))
     
-    menu_background_img = pygame.image.load('mainImages/menu.png').convert()
+    menu_background_img = pygame.image.load('recursos/mainImages/menu.png').convert()
     menu_background_img = pygame.transform.scale(menu_background_img, (WIDTH, HEIGHT))
-    
-    game_over_bg_img = pygame.image.load("mainImages/gameover.png").convert()
+
+    game_over_bg_img = pygame.image.load("recursos/mainImages/gameover.png").convert()
     game_over_bg_img = pygame.transform.scale(game_over_bg_img, (WIDTH, HEIGHT))
 
     # Carregando a imagem de fundo das instruções aqui para evitar recarregar
-    instructions_background_img = pygame.image.load('mainImages/instrucoes.png').convert()
+    instructions_background_img = pygame.image.load('recursos/mainImages/instrucoes.png').convert()
     instructions_background_img = pygame.transform.scale(instructions_background_img, (WIDTH, HEIGHT))
     
-    recordes_imagem = pygame.image.load("mainImages/recordes.png").convert()
+    recordes_imagem = pygame.image.load("recursos/mainImages/recordes.png").convert()
     recordes_imagem = pygame.transform.scale(recordes_imagem, (WIDTH, HEIGHT))
     
 except pygame.error as e:
@@ -40,21 +44,19 @@ except pygame.error as e:
 CLOCK = pygame.time.Clock()
 FPS = 60
 GRAVITY_PLAYER = 1.0 # Gravidade específica do jogador, diferente do GRAVITY global original
-# GRAVITY = 0.6 # Se você tinha um GRAVITY global para outros propósitos, pode restaurá-lo.
-                # No seu código original, Player usava self.gravity = 1.0.
+
 max_horizontal_gap = 150
 max_vertical_gap = 120
 
 pygame.mixer.init()
 try:
-    coin_sound = pygame.mixer.Sound("mainSounds/coin.mp3")
+    coin_sound = pygame.mixer.Sound("recursos/mainSounds/coin.mp3")
     coin_sound.set_volume(0.3)
-    gameover_sound = pygame.mixer.Sound("mainSounds/gameover.mp3")
-    jump_sound = pygame.mixer.Sound("mainSounds/jump.mp3")
+    gameover_sound = pygame.mixer.Sound("recursos/mainSounds/gameover.mp3")
+    jump_sound = pygame.mixer.Sound("recursos/mainSounds/jump.mp3")
     jump_sound.set_volume(0.3)
 except pygame.error as e:
     print(f"Aviso: Erro ao carregar som: {e}. O jogo continuará sem alguns sons.")
-
 
 # Cores
 WHITE = (255, 255, 255)
@@ -69,7 +71,6 @@ SCORE_TEXT_COLOR = (220, 220, 200)
 FONT_SMALL = pygame.font.SysFont("Arial", 24)
 FONT_MEDIUM = pygame.font.SysFont("Arial", 36)
 FONT_LARGE = pygame.font.SysFont("Arial", 60)
-# FONT_CREDITS = pygame.font.SysFont("Arial", 18) # Se não for usado, pode ser removido
 
 # --- Armazenamento de Pontuação (Arquivo JSON) ---
 SCORES_FILE = "game_scores.json"
@@ -127,7 +128,7 @@ class Coin(pygame.sprite.Sprite):
         try:
             self.frames = [
                 pygame.transform.scale(
-                    pygame.image.load(f"frames/CoinFrame/frame_{i}.png").convert_alpha(), (24, 24)
+                    pygame.image.load(f"recursos/frames/CoinFrame/frame_{i}.png").convert_alpha(), (24, 24)
                 )
                 for i in range(8)
             ]
@@ -152,11 +153,11 @@ class Player(pygame.sprite.Sprite):
         super().__init__()
         try:
             self.frames_right = [
-                pygame.transform.scale(pygame.image.load(f"frames/SelfFrames/direita/frame_{i}_di.png").convert_alpha(), (50, 60))
+                pygame.transform.scale(pygame.image.load(f"recursos/frames/SelfFrames/direita/frame_{i}_di.png").convert_alpha(), (50, 60))
                 for i in range(4)
             ]
             self.frames_left = [
-                pygame.transform.scale(pygame.image.load(f"frames/SelfFrames/esquerda/frame_{i}_es.png").convert_alpha(), (50, 60))
+                pygame.transform.scale(pygame.image.load(f"recursos/frames/SelfFrames/esquerda/frame_{i}_es.png").convert_alpha(), (50, 60))
                 for i in range(4)
             ]
         except pygame.error as e:
@@ -185,7 +186,7 @@ class Player(pygame.sprite.Sprite):
         self.jump_timer = 0
         self.jump_timer_max = 10
 
-    def update(self, platforms): # Sua lógica original
+    def update(self, platforms): # lógica original
         keys = pygame.key.get_pressed()
         moved = False
         if keys[pygame.K_a]:
@@ -214,7 +215,7 @@ class Player(pygame.sprite.Sprite):
                 self.animation_timer = 0
                 self.current_frame = (self.current_frame + 1) % 4
         else:
-            self.current_frame = 0 # Reset to first frame if not moving
+            self.current_frame = 0 
         if self.last_direction == "right":
             self.image = self.frames_right[self.current_frame]
         else:
@@ -226,7 +227,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.y += self.vel_y
         landed = False
         for p in platforms:
-            if self.vel_y > 0 and self.rect.colliderect(p.rect) and old_bottom <= p.rect.top + 1: # +1 for small tolerance
+            if self.vel_y > 0 and self.rect.colliderect(p.rect) and old_bottom <= p.rect.top + 1: # Verifica se está caindo
                 self.rect.bottom = p.rect.top
                 self.vel_y = 0
                 self.on_ground = True
@@ -241,14 +242,14 @@ class Player(pygame.sprite.Sprite):
             self.alive = False
 
 class Platform(pygame.sprite.Sprite):
-    def __init__(self, x, y, largura=None, altura=None, image_file="mainImages/plataformas1.png"):
+    def __init__(self, x, y, largura=None, altura=None, image_file="recursos/mainImages/plataformas1.png"):
         super().__init__()
         try:
             imagem_original = pygame.image.load(image_file).convert_alpha()
         except pygame.error as e:
             print(f"Aviso: Erro ao carregar imagem da plataforma '{image_file}': {e}.")
             imagem_original = pygame.Surface((largura if largura else 100, altura if altura else 20), pygame.SRCALPHA)
-            imagem_original.fill((150,150,150)) # Placeholder cinza
+            imagem_original.fill((150,150,150)) 
         
         if largura is None or altura is None:
             self.image = imagem_original
@@ -258,7 +259,7 @@ class Platform(pygame.sprite.Sprite):
                 scale_x = largura / orig_width
                 nova_altura = int(orig_height * scale_x)
                 self.image = pygame.transform.scale(imagem_original, (largura, nova_altura))
-            else: # Fallback for invalid image
+            else: 
                 self.image = pygame.transform.scale(imagem_original, (largura, altura if altura else 20))
         self.rect = self.image.get_rect(topleft=(x, y))
 
@@ -267,7 +268,7 @@ class Enemy(pygame.sprite.Sprite):
         super().__init__()
         try:
             self.frames = [
-                pygame.transform.scale(pygame.image.load(f"frames/EnemyFrames/frame_{i}.png").convert_alpha(), (37, 37))
+                pygame.transform.scale(pygame.image.load(f"recursos/frames/EnemyFrames/frame_{i}.png").convert_alpha(), (37, 37))
                 for i in range(15)
             ]
         except pygame.error as e:
@@ -276,36 +277,34 @@ class Enemy(pygame.sprite.Sprite):
 
         self.current_frame = 0
         self.animation_timer = 0
-        self.animation_speed = 0.1 # Sua velocidade original
+        self.animation_speed = 0.1 # velocidade original
         self.image = self.frames[self.current_frame]
         self.rect = self.image.get_rect(topleft=(x, y))
         self.dir_x = random.choice([-1, 1])
         self.dir_y = random.choice([-1, 1])
         self.speed_x = random.uniform(speed_min, speed_max)
         self.speed_y = random.uniform(speed_min, speed_max)
-        # self.alive = False # Removida, pois o original não usa explicitamente (Enemy é removido do grupo)
-
-    def update(self): # Sua lógica original
+   
+    def update(self): 
         self.rect.x += self.dir_x * self.speed_x
         self.rect.y += self.dir_y * self.speed_y
         if self.rect.left <= 0 or self.rect.right >= WIDTH:
             self.dir_x *= -1
-        if self.rect.top <= 0: # Sua condição original
+        if self.rect.top <= 0: # condição original
             self.dir_y *= -1
-        if self.rect.top > HEIGHT: # Sua condição original para "matar" o inimigo
-            # No seu código original, o inimigo que sai por baixo é tratado no game_loop (removido do grupo)
-            # Se você usava self.alive para algo mais, pode reativar.
-            # Para este contexto, não é necessário aqui.
+        if self.rect.top > HEIGHT: 
             pass 
         self.animation_timer += self.animation_speed
         if self.animation_timer >= 1:
             self.animation_timer = 0
             self.current_frame = (self.current_frame + 1) % len(self.frames)
             self.image = self.frames[self.current_frame]
+    
+    
 
-# --- Suas Funções Originais de UI (draw_text, button) ---
-# Estas são as suas funções, mantidas como estavam.
-def draw_text(text, font, color, x, y, center=False): # SUA FUNÇÃO ORIGINAL
+# ---  Funções Originais de UI (draw_text, button) ---
+
+def draw_text(text, font, color, x, y, center=False): 
     surface = font.render(text, True, color)
     rect = surface.get_rect()
     if center:
@@ -314,10 +313,10 @@ def draw_text(text, font, color, x, y, center=False): # SUA FUNÇÃO ORIGINAL
         rect.topleft = (x, y)
     SCREEN.blit(surface, rect)
 
-def button(text, x, y, width, height): # SUA FUNÇÃO ORIGINAL
+def button(text, x, y, width, height): 
     mouse_pos = pygame.mouse.get_pos()
     # A variável 'click' aqui pega o estado contínuo do botão pressionado.
-    # Para menus, é melhor tratar o evento MOUSEBUTTONDOWN uma vez por frame.
+    
     click = pygame.mouse.get_pressed()[0] 
     rect = pygame.Rect(x, y, width, height)
     base_color = (30, 30, 60)
@@ -329,27 +328,15 @@ def button(text, x, y, width, height): # SUA FUNÇÃO ORIGINAL
         pygame.draw.rect(SCREEN, hover_color, rect, border_radius=12)
         if click: # Se o mouse está sobre E pressionado
             pygame.draw.rect(SCREEN, click_color, rect, border_radius=12)
-            # No seu código original, o display.update e delay acontecem aqui.
-            # Isso pode causar múltiplos acionamentos se o botão for mantido pressionado.
-            # Para os menus que adicionarei, o clique será tratado no loop de eventos.
-            # Para manter sua função original, o retorno True acontece aqui.
-            # pygame.display.update(rect) # Removido para evitar conflito com flip principal
-            # pygame.time.delay(100)      # Removido para evitar pausas inesperadas
-            action = True # O botão foi "clicado" de acordo com sua lógica original
+            
+            action = True # O botão foi "clicado" de acordo com a lógica original
     else:
         pygame.draw.rect(SCREEN, base_color, rect, border_radius=12)
     
-    # Desenhando o texto usando sua função draw_text original
+    
     draw_text(text, FONT_MEDIUM, WHITE, x + width / 2, y + height / 2, center=True)
     
-    # Sua função original retorna True se clicado, com delay e update.
-    # Para integração, é melhor que o retorno True seja usado para disparar a ação uma vez.
-    # O delay e update podem ser feitos após a chamada da função se necessário.
     if action:
-        # Para evitar múltiplos acionamentos rápidos se o clique for muito curto,
-        # o ideal é que a lógica de "ação única por clique" seja no loop de eventos.
-        # Mas, para manter sua função, retornamos 'action'.
-        # O delay(100) e update(rect) podem ser chamados após o if button(...) na sua lógica original.
         pass
 
     return action
@@ -375,9 +362,8 @@ def get_player_name_screen():
 
     btn_confirm_rect = pygame.Rect(WIDTH / 2 - 100 - 10, input_field_rect.bottom + 40, 200, 55) # X, Y, W, H
     btn_back_rect = pygame.Rect(WIDTH / 2 + 10, input_field_rect.bottom + 40, 200, 55) # X ajustado se necessário
-    # Se os botões acima estiverem sobrepostos, ajuste o X ou Y.
-    # Para dois botões lado a lado de 200px:
-    total_width_btns = 200 + 20 + 200 # btn1_w + spacing + btn2_w
+   
+    total_width_btns = 200 + 20 + 200 # Largura do botão de confirmação + espaçamento + largura do botão de voltar
     start_x_btns = WIDTH/2 - total_width_btns/2
     btn_confirm_rect = pygame.Rect(start_x_btns, input_field_rect.bottom + 40, 200, 55)
     btn_back_rect = pygame.Rect(start_x_btns + 200 + 20, input_field_rect.bottom + 40, 200, 55)
@@ -385,7 +371,7 @@ def get_player_name_screen():
 
     screen_active = True
     while screen_active:
-        SCREEN.blit(menu_background_img, (0,0))
+        SCREEN.blit(instructions_background_img, (0, 0)) 
         draw_text("Digite seu nome:", FONT_MEDIUM, WHITE, WIDTH / 2, HEIGHT / 2 - 80, center=True)
 
         for event in pygame.event.get():
@@ -469,12 +455,12 @@ def high_scores_screen():
         pygame.display.flip()
         CLOCK.tick(FPS)
 
-# --- Suas Funções de Jogo e Menus Originais (adaptadas minimamente para o novo fluxo) ---
-def main_menu(): # Sua função, adaptada para o novo fluxo e botão de Recordes
-    btn_w, btn_h, spacing = 200, 60, 30 # Suas dimensões
-    start_y_btns = HEIGHT / 2.6
-    btn_x_pos = WIDTH / 2 - btn_w / 2
-
+# --- Funções de Jogo e Menus 
+def main_menu(): 
+    btn_w, btn_h, spacing = 200, 50, 10 # dimensões
+    start_y_btns = HEIGHT / 1.6 # Posição Y inicial dos botões
+    btn_x_pos = WIDTH / 2 - btn_w / 2 # Centralizando os botões horizontalmente
+  
     # Definindo as geometrias dos botões uma vez
     buttons_layout = [
         {"text": "Iniciar", "rect": pygame.Rect(btn_x_pos, start_y_btns, btn_w, btn_h), "action": "start_game"},
@@ -492,18 +478,18 @@ def main_menu(): # Sua função, adaptada para o novo fluxo e botão de Recordes
                     if btn_info["rect"].collidepoint(event.pos):
                         pygame.time.delay(100) # Pequeno delay visual no clique
                         if btn_info["action"] == "start_game": return "start_game"
-                        elif btn_info["action"] == "instructions": instructions_menu(); break # instructions_menu() bloqueia
-                        elif btn_info["action"] == "high_scores": high_scores_screen(); break # high_scores_screen() bloqueia
+                        elif btn_info["action"] == "instructions": instructions_menu(); break 
+                        elif btn_info["action"] == "high_scores": high_scores_screen(); break 
                         elif btn_info["action"] == "quit": pygame.quit(); sys.exit()
         
-        for btn_info in buttons_layout: # Desenha os botões usando sua função original `button`
+        for btn_info in buttons_layout: # Desenha os botões usando função original `button`
                                         # mas sem checar o retorno dela aqui, pois o clique é tratado acima.
             button(btn_info["text"], btn_info["rect"].x, btn_info["rect"].y, btn_info["rect"].width, btn_info["rect"].height)
         
         pygame.display.flip()
         CLOCK.tick(FPS)
 
-def instructions_menu(): # Sua função original, usando `instructions_background_img`
+def instructions_menu(): 
     btn_w, btn_h = 200, 50
     btn_back_rect = pygame.Rect(WIDTH // 2 - btn_w // 2, HEIGHT - 130, btn_w, btn_h)
     
@@ -516,7 +502,7 @@ def instructions_menu(): # Sua função original, usando `instructions_backgroun
                 if btn_back_rect.collidepoint(e.pos): pygame.time.delay(100); return
         
         lines = ["→ Use as teclas A e D para se mover para os lados", "→ Use a tecla W para pular",
-                 "→ Evite os morcegos que voam pelo caminho", "→ Suba o mais alto que conseguir para ganhar pontos", "→ Clique ESC para pausar o jogo", "→ Boa sorte!"]
+                 "→ Evite os morcegos que voam pelo caminho", "→ Suba o mais alto que conseguir para ganhar pontos", "→ Clique ESC para pausar o jogo", "→ Segure W para pular alto, aperte rapidamente para pular pouco", "→ Boa sorte!"]
         y_start_txt, line_spacing_txt = HEIGHT // 3, 35
         for i, line in enumerate(lines):
             draw_text(line, FONT_SMALL, (0,0,0), WIDTH // 2 + 2, y_start_txt + i * line_spacing_txt + 2, center=True) # Sombra
@@ -525,8 +511,9 @@ def instructions_menu(): # Sua função original, usando `instructions_backgroun
         button("Voltar", btn_back_rect.x, btn_back_rect.y, btn_back_rect.width, btn_back_rect.height) # Seu botão
         pygame.display.flip()
         CLOCK.tick(FPS)
-
-def select_difficulty(): # Sua função original
+        
+    #selecionar dificuldade 
+def select_difficulty(): 
     difficulties_cfg = {
         "Fácil": {"enemy_speed_min": 0.5, "enemy_speed_max": 1.0, "name": "Fácil"},
         "Médio": {"enemy_speed_min": 1.0, "enemy_speed_max": 2.0, "name": "Médio"},
@@ -551,25 +538,25 @@ def select_difficulty(): # Sua função original
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 for btn_info in buttons_geom:
                     if btn_info["rect"].collidepoint(event.pos):
-                        pygame.time.delay(100) # Delay original do seu botão
+                        pygame.time.delay(100) 
                         return btn_info["config"]
         
-        for btn_info in buttons_geom: # Usa sua função button para desenhar
+        for btn_info in buttons_geom: 
             button(btn_info["text"], btn_info["rect"].x, btn_info["rect"].y, btn_info["rect"].width, btn_info["rect"].height)
         
         pygame.display.flip()
         CLOCK.tick(FPS)
 
-def pause_menu(): # Sua função original, adaptada para retornar string de ação
+def pause_menu(): 
     options, selected_idx = ["Continuar", "Sair"], 0
     overlay = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA); overlay.fill((0,0,0,128))
     
     opt_rects = []
     for i in range(len(options)):
-         opt_rects.append(pygame.Rect(WIDTH // 2 - 125, HEIGHT // 2 -30 + i * 80, 250, 60)) # Ajustado Y para centralizar melhor
+         opt_rects.append(pygame.Rect(WIDTH // 2 - 125, HEIGHT // 2 -30 + i * 80, 250, 60)) 
 
     while True:
-        SCREEN.blit(overlay, (0,0)) # Desenha o overlay por cima do jogo pausado (que não é redesenhado aqui)
+        SCREEN.blit(overlay, (0,0)) # Desenha o overlay por cima do jogo pausado 
         draw_text("PAUSADO", FONT_LARGE, WHITE, WIDTH // 2, HEIGHT // 2 - 120, center=True)
         mouse_p = pygame.mouse.get_pos()
 
@@ -597,15 +584,20 @@ def pause_menu(): # Sua função original, adaptada para retornar string de aç�
         pygame.display.flip()
         CLOCK.tick(FPS) # Manter FPS para menu responsivo
 
-# --- SEU GAME LOOP ORIGINAL (INTACTO) ---
+# --- SEU GAME LOOP  ---
 def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
-    # ... (todo o seu código original do game_loop, exatamente como você forneceu) ...
-    # ... A única alteração é o retorno para incluir `exited_to_menu` ...
+    # Carrega o ícone da moeda e prepara para a animação de pulsar
+    coin_icon_original = pygame.image.load("recursos/frames/CoinFrame/frame_0.png").convert_alpha()
+    
+    pulse_angle = 0
+    pulse_speed = 0.05
+    base_icon_size = 40
+    pulse_amplitude = 4
     platforms = pygame.sprite.Group()
     coins = pygame.sprite.Group()
     moedas = 0
 
-    initial_platform = Platform(0, HEIGHT - 40, WIDTH, 100, image_file="mainImages/chao.png")
+    initial_platform = Platform(0, HEIGHT - 40, WIDTH, 100, image_file="recursos/mainImages/chao.png")
     platforms.add(initial_platform)
     last_y = initial_platform.rect.top
 
@@ -652,7 +644,7 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
         if p.rect.top >= HEIGHT - 50:
             player.visited_platforms.add(id(p))
 
-    camera_y_original_var = 0 # Sua variável original
+    camera_y_original_var = 0 
 
     while True: # Loop interno do jogo
         for e in pygame.event.get():
@@ -661,11 +653,11 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
                 sys.exit()
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_ESCAPE:
-                    action_from_pause = pause_menu() # Sua função de pause
+                    action_from_pause = pause_menu() # função de pause
                     if action_from_pause == "exit_to_main_menu": # Se pause_menu instruir sair
                         return player.score, moedas, True # True indica que saiu para o menu
                     # Se "continue", o jogo apenas continua daqui
-
+        
         player.update(platforms)
         enemies.update()
         coins.update()
@@ -684,7 +676,7 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
         if player.rect.top < HEIGHT // 3:
             diff = HEIGHT // 3 - player.rect.top
             player.rect.top = HEIGHT // 3
-            camera_y_original_var += diff # Sua variável de câmera
+            camera_y_original_var += diff 
 
             # Loop para mover plataformas e remover as que saem da tela
             for p_sprite in list(platforms): # Usar list() para permitir remoção durante iteração
@@ -707,17 +699,14 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
                 if coin_sprite.rect.top > HEIGHT:
                     coins.remove(coin_sprite)
 
-            # Sua lógica de geração de novas plataformas
+            # lógica de geração de novas plataformas
             highest_y_val = min(p.rect.top for p in platforms) if platforms else HEIGHT 
             while highest_y_val > 50:
                 new_y_val = highest_y_val - random.randint(60, max_vertical_gap)
                 largura_val = random.randint(80, 100)
                 candidates_val = [p for p in platforms if p.rect.top > new_y_val] # Deve ser < new_y_val para plataformas acima
-                # Correção: para achar a base, as candidatas devem estar abaixo da nova Y e próximas
-                # No seu código original, parece que a intenção é achar uma plataforma próxima para basear o X.
-                # A lógica original de `candidates` pode precisar de revisão se o objetivo é basear X em plataformas *abaixo* da nova.
-                # Mantendo sua lógica original para `candidates`:
-                if candidates_val: # Esta lógica original pega plataformas *abaixo* da nova plataforma
+               
+                if candidates_val: # pega plataformas *abaixo* da nova plataforma
                     closest_platform_val = min(candidates_val, key=lambda p: p.rect.top)
                     base_center_x_val = closest_platform_val.rect.x + closest_platform_val.rect.width // 2
                     x_min_val = base_center_x_val - max_horizontal_gap
@@ -731,14 +720,14 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
 
                 new_platform_inst = Platform(new_x_val, new_y_val, largura_val, 40)
                 platforms.add(new_platform_inst)
-                platform_count += 1 # Sua contagem
+                platform_count += 1 # contagem
 
-                if platform_count % 5 == 0: # Sua lógica de moedas
+                if platform_count % 5 == 0: #  lógica de moedas
                     coin_x_val = new_x_val + largura_val // 2
                     coin_y_val = new_y_val - 15
                     coins.add(Coin(coin_x_val, coin_y_val))
 
-                # Sua lógica de geração de inimigos
+                # lógica de geração de inimigos
                 for _ in range(random.randint(1, 2)):
                     ex_val = new_x_val + random.randint(-100, 250) # X relativo à nova plataforma
                     ey_val = new_y_val - random.randint(250, 350) # Y acima da nova plataforma
@@ -754,22 +743,36 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
         enemies.draw(SCREEN)
         coins.draw(SCREEN)
         SCREEN.blit(player.image, player.rect)
+    
+    # Lógica para fazer o ícone pulsar e desenhá-lo na tela
+        pulse_angle += pulse_speed
+        scale_offset = math.sin(pulse_angle) * pulse_amplitude
+        current_size = int(base_icon_size + scale_offset)
 
-        draw_text(f"Pontos: {player.score}", FONT_SMALL, WHITE, 10, 10, center=False) # Sua função draw_text
-        draw_text(f"Moedas: {moedas}", FONT_SMALL, YELLOW, 10, 40, center=False) # Sua função draw_text
+        # Redimensiona a imagem original
+        pulsing_icon = pygame.transform.scale(coin_icon_original, (current_size, current_size))
+
+        # Posiciona no canto superior direito com uma pequena margem
+        icon_rect = pulsing_icon.get_rect(topright=(WIDTH - 15, 15))
+
+        SCREEN.blit(pulsing_icon, icon_rect)
+
+
+        draw_text(f"Pontos: {player.score}  - Press ESC to Pause Game.", FONT_SMALL, WHITE, 10, 10, center=False) 
+        draw_text(f"Moedas: {moedas}", FONT_SMALL, YELLOW, 10, 40, center=False) 
 
         pygame.display.flip()
         CLOCK.tick(FPS)
     # Fim do loop while True do jogo
-    return player.score, moedas, False # Retorno padrão se o loop terminar por outra razão (improvável aqui)
+    return player.score, moedas, False # Retorno padrão se o loop terminar por outra razão improvável aqui
 
 
-# --- SUA FUNÇÃO GAME_OVER ORIGINAL (adaptada minimamente) ---
-# Renomeada para game_over_screen_original para evitar conflito de nome se houver outra game_over
+# --- GAME_OVER  ---
+
 def game_over_screen_original(current_score, collected_coins, difficulty_settings, player_name_for_display):
     if 'gameover_sound' in globals(): gameover_sound.play() # Toca o som de game over
 
-    # Sua função interna draw_text_shadow
+   
     def draw_text_shadow(text, font, color, x, y, center=True):
         shadow_color = (0, 0, 0)
         shadow_offset = 2
@@ -790,13 +793,13 @@ def game_over_screen_original(current_score, collected_coins, difficulty_setting
     btn_exit_rect = pygame.Rect(WIDTH//2 - 100, HEIGHT//2 + 120, 200, 50)
 
     while True:
-        SCREEN.blit(game_over_bg_img, (0, 0)) # Sua imagem de fundo de game over
+        SCREEN.blit(game_over_bg_img, (0, 0)) 
 
         for e in pygame.event.get():
             if e.type == pygame.QUIT: pygame.quit(); sys.exit()
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_r: return True # Reiniciar
-                if e.key == pygame.K_ESCAPE: return False # Sair para o menu (ou fechar, dependendo da sua intenção original)
+                if e.key == pygame.K_ESCAPE: return False 
             if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
                 # A função button original tem seu próprio delay e update.
                 # Para consistência com o clique único, verificamos a colisão aqui.
@@ -810,17 +813,13 @@ def game_over_screen_original(current_score, collected_coins, difficulty_setting
                     return False # Modificado para retornar False para ir ao menu, em vez de sys.exit()
 
         # Desenha os textos e botões
-        draw_text_shadow(f"{player_name_for_display}, sua pontuação: {current_score}", FONT_SMALL, WHITE, WIDTH//2, HEIGHT//4 + 40)
+        draw_text_shadow(f"{player_name_for_display}, sua pontuação foi: {current_score}", FONT_SMALL, WHITE, WIDTH//2, HEIGHT//4 + 40)
         draw_text_shadow(f"Moedas coletadas: {collected_coins}", FONT_SMALL, YELLOW, WIDTH//2, HEIGHT//4 + 80)  
-        # draw_text_shadow(f"Dificuldade: {difficulty_settings['name']}", FONT_SMALL, WHITE, WIDTH//2, HEIGHT//4 + 120) # Opcional
-        # Textos para R e ESC podem ser removidos se os botões são suficientes
-        draw_text_shadow("Pressione R para reiniciar", FONT_SMALL, WHITE, WIDTH//2, HEIGHT//4 + 160) # Y ajustado
-        draw_text_shadow("Pressione ESC para voltar ao menu", FONT_SMALL, WHITE, WIDTH//2, HEIGHT//4 + 200) # Y ajustado
+        
+        draw_text_shadow("Pressione R para reiniciar", FONT_SMALL, WHITE, WIDTH//2, HEIGHT//4 + 130) # Y ajustado
+        draw_text_shadow("Pressione ESC para voltar ao menu", FONT_SMALL, WHITE, WIDTH//2, HEIGHT//4 + 160) # Y ajustado
 
-
-        # Desenha os botões usando sua função original `button`
-        # O clique é tratado acima para um fluxo mais controlado.
-        # A função button aqui serve mais para o visual.
+        
         button("Reiniciar", btn_restart_rect.x, btn_restart_rect.y, btn_restart_rect.width, btn_restart_rect.height)
         button("Menu", btn_exit_rect.x, btn_exit_rect.y, btn_exit_rect.width, btn_exit_rect.height) # Texto alterado
 
@@ -832,18 +831,16 @@ def main():
     current_player_name = "Jogador" # Nome padrão
 
     while True: # Loop da aplicação (volta para o menu principal)
-        action_from_main_menu = main_menu() # Sua função main_menu
+        action_from_main_menu = main_menu() #  função main_menu
 
         if action_from_main_menu == "start_game":
             name_entered = get_player_name_screen()
             if name_entered is None: # Usuário clicou em "Voltar" na tela de nome
                 continue # Volta para o main_menu
             current_player_name = name_entered
-        # Se main_menu retornar outra coisa (como "instructions" ou "high_scores"),
-        # essas funções são bloqueantes e o loop do main_menu continuará após elas.
-        # Se main_menu tiver saído do jogo, este loop não será alcançado.
+       
 
-        difficulty_config = select_difficulty() # Sua função select_difficulty
+        difficulty_config = select_difficulty() # função select_difficulty
         if difficulty_config is None: # Usuário apertou ESC na seleção de dificuldade
             continue # Volta para o main_menu
 
@@ -864,14 +861,13 @@ def main():
             # Se o jogo terminou normalmente (não por pausa para sair)
             update_and_save_game_score(current_player_name, score, moedas)
             
-            # Sua função game_over, adaptada para o nome e para retornar False para ir ao menu
+            # Exibe a tela de game over
             should_restart = game_over_screen_original(score, moedas, difficulty_config, current_player_name)
             
             if not should_restart: # Se o jogador escolheu "Sair para Menu" ou pressionou ESC
                 play_again = False # Interrompe o loop de "jogar novamente"
             # Se should_restart for True (pressionou R), o loop `while play_again` continua
 
-            
 if __name__ == "__main__":
     pygame.init() # Garante que está inicializado
     main()
