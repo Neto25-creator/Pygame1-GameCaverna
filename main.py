@@ -301,6 +301,31 @@ class Enemy(pygame.sprite.Sprite):
             self.image = self.frames[self.current_frame]
     
     
+# --- Classe para Diamantes Decorativos ---  Exigencia de objeto randomico que nao interage com o personagem
+class DecorativeDiamond(pygame.sprite.Sprite):
+    def __init__(self, x, y, speed_min=0.5, speed_max=2.0):
+        super().__init__()
+        try:
+            self.image = pygame.transform.scale(pygame.image.load("recursos/mainImages/diamante.png").convert_alpha(), (30, 30))
+        except pygame.error as e:
+            print(f"Aviso: Erro ao carregar imagem do diamante: {e}.")
+            self.image = pygame.Surface((30, 30), pygame.SRCALPHA)
+            self.image.fill((0, 255, 255)) 
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.dir_x = random.choice([-1, 1])
+        self.dir_y = random.choice([-1, 1])
+        self.speed_x = random.uniform(speed_min, speed_max)
+        self.speed_y = random.uniform(speed_min, speed_max)
+
+    def update(self):
+        self.rect.x += self.dir_x * self.speed_x
+        self.rect.y += self.dir_y * self.speed_y
+
+        # Inverte a direção se atingir as bordas da tela
+        if self.rect.left <= 0 or self.rect.right >= WIDTH:
+            self.dir_x *= -1
+        if self.rect.top <= 0 or self.rect.bottom >= HEIGHT:
+            self.dir_y *= -1
 
 # ---  Funções Originais de UI (draw_text, button) ---
 
@@ -634,10 +659,17 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
         last_y = new_y
 
     enemies = pygame.sprite.Group()
+    decorative_diamonds = pygame.sprite.Group() # Adiciona o grupo para os diamantes decorativos
     for _ in range(4):
         ex = random.randint(0, WIDTH - 40)
         ey = random.randint(100, HEIGHT - 140)
         enemies.add(Enemy(ex, ey, enemy_speed_min, enemy_speed_max))
+
+    # Adiciona diamantes decorativos
+    for _ in range(5): # Adiciona 5 diamantes
+        dx = random.randint(0, WIDTH - 30)
+        dy = random.randint(100, HEIGHT - 100)
+        decorative_diamonds.add(DecorativeDiamond(dx, dy))
 
     player = Player(WIDTH // 2, HEIGHT - 100, player_speed)
     for p in platforms: # Marca o chão inicial como visitado
@@ -660,6 +692,7 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
         
         player.update(platforms)
         enemies.update()
+        decorative_diamonds.update() # Atualiza os diamantes decorativos
         coins.update()
 
         collected_coins_list = pygame.sprite.spritecollide(player, coins, True)
@@ -741,6 +774,7 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
         SCREEN.blit(background_image_game, (0, 0)) # Usar a imagem de fundo do jogo
         for p_item in platforms: SCREEN.blit(p_item.image, p_item.rect) # Desenhar individualmente
         enemies.draw(SCREEN)
+        decorative_diamonds.draw(SCREEN) # Desenha os diamantes decorativos
         coins.draw(SCREEN)
         SCREEN.blit(player.image, player.rect)
     
