@@ -47,3 +47,7 @@ Escape da Caverna é um jogo de plataforma vertical em que o jogador deve subir 
 3. Caso preferir, execute o arquivo .exe
 
 ## divirta-se !
+
+
+Testador: Naubert Piva Migliavacca
+RA: 1138130
