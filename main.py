@@ -3,9 +3,9 @@ import sys
 import time
 import speech_recognition as sr
 import pyttsx3
-import threading
-import math
-import random
+import threading 
+import math 
+import random 
 import json # Para o arquivo de texto de pontuações
 import os   # Para verificar a existência do arquivo
 from datetime import datetime
@@ -15,13 +15,10 @@ pygame.init()
 from recursos.ola import dizer_ola 
 dizer_ola()
 
-
 #exigencia = voz e fala
 engine = pyttsx3.init()
 engine.setProperty('rate', 170)  # velocidade da fala
 engine.setProperty('voice', 'brazil')  #voz em português 
-
-
 
 # Definições de Tela e Variáveis Globais
 WIDTH, HEIGHT = 1000, 700
