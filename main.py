@@ -1,5 +1,9 @@
 import pygame
 import sys
+import time
+import speech_recognition as sr
+import pyttsx3
+import threading
 import math
 import random
 import json # Para o arquivo de texto de pontuações
@@ -10,6 +14,14 @@ pygame.init()
 #exigencia = importar uma função de outro arquivo: 
 from recursos.ola import dizer_ola 
 dizer_ola()
+
+
+#exigencia = voz e fala
+engine = pyttsx3.init()
+engine.setProperty('rate', 170)  # velocidade da fala
+engine.setProperty('voice', 'brazil')  #voz em português 
+
+
 
 # Definições de Tela e Variáveis Globais
 WIDTH, HEIGHT = 1000, 700
@@ -301,14 +313,14 @@ class Enemy(pygame.sprite.Sprite):
             self.image = self.frames[self.current_frame]
     
     
-# --- Classe para Diamantes Decorativos ---  Exigencia de objeto randomico que nao interage com o personagem
-class DecorativeDiamond(pygame.sprite.Sprite):
+# --- Classe para objeto Decorativos ---  Exigencia de objeto randomico que nao interage com o personagem
+class Vagalume(pygame.sprite.Sprite):
     def __init__(self, x, y, speed_min=0.5, speed_max=2.0):
         super().__init__()
         try:
-            self.image = pygame.transform.scale(pygame.image.load("recursos/mainImages/diamante.png").convert_alpha(), (30, 30))
+            self.image = pygame.transform.scale(pygame.image.load("recursos/mainImages/vagalume.png").convert_alpha(), (30, 30))
         except pygame.error as e:
-            print(f"Aviso: Erro ao carregar imagem do diamante: {e}.")
+            print(f"Aviso: Erro ao carregar imagem do vagalume: {e}.")
             self.image = pygame.Surface((30, 30), pygame.SRCALPHA)
             self.image.fill((0, 255, 255)) 
         self.rect = self.image.get_rect(topleft=(x, y))
@@ -385,14 +397,38 @@ def get_player_name_screen():
     error_message_str = ""
     max_name_len = 15
 
-    btn_confirm_rect = pygame.Rect(WIDTH / 2 - 100 - 10, input_field_rect.bottom + 40, 200, 55) # X, Y, W, H
-    btn_back_rect = pygame.Rect(WIDTH / 2 + 10, input_field_rect.bottom + 40, 200, 55) # X ajustado se necessário
-   
-    total_width_btns = 200 + 20 + 200 # Largura do botão de confirmação + espaçamento + largura do botão de voltar
+    btn_confirm_rect = pygame.Rect(WIDTH / 2 - 100 - 10, input_field_rect.bottom + 40, 200, 55)
+    btn_back_rect = pygame.Rect(WIDTH / 2 + 10, input_field_rect.bottom + 40, 200, 55)
+
+    total_width_btns = 200 + 20 + 200
     start_x_btns = WIDTH/2 - total_width_btns/2
     btn_confirm_rect = pygame.Rect(start_x_btns, input_field_rect.bottom + 40, 200, 55)
     btn_back_rect = pygame.Rect(start_x_btns + 200 + 20, input_field_rect.bottom + 40, 200, 55)
 
+    def falar(texto):
+        engine.say(texto)
+        engine.runAndWait()
+
+    def ouvir_nome():
+        nonlocal player_name_str
+        recognizer = sr.Recognizer()
+        with sr.Microphone() as source:
+            try:
+                falar("Qual é o seu nome, jogador? Fale claramente ou escreva no cammpo abaixo.")
+                audio = recognizer.listen(source, timeout=10, phrase_time_limit=4)
+                nome = recognizer.recognize_google(audio, language='pt-BR')
+                time.sleep(2)
+                player_name_str = nome.capitalize()
+                falar("Entendi o seu nome. Tudo pronto para começar! clique em começar.")
+            except sr.WaitTimeoutError:
+                falar("Você não falou nada. Tente novamente.")
+            except sr.UnknownValueError:
+                falar("Desculpe, não entendi o seu nome.")
+            except Exception as e:
+                print(f"Erro no reconhecimento de voz: {e}")
+                falar("Ocorreu um erro ao tentar ouvir você.")
+        # Executa a voz e a escuta em paralelo
+    threading.Thread(target=ouvir_nome, daemon=True).start()
 
     screen_active = True
     while screen_active:
@@ -418,7 +454,7 @@ def get_player_name_screen():
                     else: error_message_str = "Nome deve ter pelo menos 1 caractere!"
                 elif btn_back_rect.collidepoint(event.pos):
                     pygame.time.delay(100); return None
-        
+
         pygame.draw.rect(SCREEN, INPUT_BOX_COLOR, input_field_rect, border_radius=10)
         name_surf = FONT_MEDIUM.render(player_name_str, True, INPUT_TEXT_COLOR)
         SCREEN.blit(name_surf, (input_field_rect.x + 10, input_field_rect.y + (input_field_rect.height - name_surf.get_height()) / 2))
@@ -429,7 +465,7 @@ def get_player_name_screen():
 
         ui_button_enhanced("Confirmar", btn_confirm_rect.x, btn_confirm_rect.y, btn_confirm_rect.width, btn_confirm_rect.height)
         ui_button_enhanced("Voltar", btn_back_rect.x, btn_back_rect.y, btn_back_rect.width, btn_back_rect.height)
-        
+
         pygame.display.flip()
         CLOCK.tick(FPS)
 
@@ -659,17 +695,17 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
         last_y = new_y
 
     enemies = pygame.sprite.Group()
-    decorative_diamonds = pygame.sprite.Group() # Adiciona o grupo para os diamantes decorativos
+    vagalumes = pygame.sprite.Group() # Adiciona o grupo para os vagalumes decorativos
     for _ in range(4):
         ex = random.randint(0, WIDTH - 40)
         ey = random.randint(100, HEIGHT - 140)
         enemies.add(Enemy(ex, ey, enemy_speed_min, enemy_speed_max))
 
     # Adiciona diamantes decorativos
-    for _ in range(5): # Adiciona 5 diamantes
+    for _ in range(3): # Adiciona (x) vagalumes decorativos
         dx = random.randint(0, WIDTH - 30)
         dy = random.randint(100, HEIGHT - 100)
-        decorative_diamonds.add(DecorativeDiamond(dx, dy))
+        vagalumes.add(Vagalume(dx, dy))
 
     player = Player(WIDTH // 2, HEIGHT - 100, player_speed)
     for p in platforms: # Marca o chão inicial como visitado
@@ -692,7 +728,7 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
         
         player.update(platforms)
         enemies.update()
-        decorative_diamonds.update() # Atualiza os diamantes decorativos
+        vagalumes.update() # Atualiza os vagalumes decorativos
         coins.update()
 
         collected_coins_list = pygame.sprite.spritecollide(player, coins, True)
@@ -774,7 +810,7 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
         SCREEN.blit(background_image_game, (0, 0)) # Usar a imagem de fundo do jogo
         for p_item in platforms: SCREEN.blit(p_item.image, p_item.rect) # Desenhar individualmente
         enemies.draw(SCREEN)
-        decorative_diamonds.draw(SCREEN) # Desenha os diamantes decorativos
+        vagalumes.draw(SCREEN) # Desenha os vagalumes decorativos
         coins.draw(SCREEN)
         SCREEN.blit(player.image, player.rect)
     
