@@ -18,7 +18,8 @@ dizer_ola()
 #exigencia = voz e fala
 engine = pyttsx3.init()
 engine.setProperty('rate', 170)  # velocidade da fala
-engine.setProperty('voice', 'brazil')  #voz em português 
+engine.setProperty('voice', 'brazil')  # voz em português 
+engine.setProperty('volume', 1.0)    # (1.0 = volume máximo)
 
 # Definições de Tela e Variáveis Globais
 WIDTH, HEIGHT = 1000, 700
@@ -26,33 +27,30 @@ PLAYER_SPEED = 8
 SCREEN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Plataforma Vertical")
 # Carregamento de Imagens 
-try:
-    background_image_game = pygame.image.load("recursos/mainImages/caverna.png").convert() # Renomeado para clareza
-    background_image_game = pygame.transform.scale(background_image_game, (WIDTH, HEIGHT))
-    
-    menu_background_img = pygame.image.load('recursos/mainImages/menu.png').convert()
-    menu_background_img = pygame.transform.scale(menu_background_img, (WIDTH, HEIGHT))
 
-    game_over_bg_img = pygame.image.load("recursos/mainImages/gameover.png").convert()
-    game_over_bg_img = pygame.transform.scale(game_over_bg_img, (WIDTH, HEIGHT))
+background_image_game = pygame.image.load("recursos/mainImages/caverna.png").convert() 
+background_image_game = pygame.transform.scale(background_image_game, (WIDTH, HEIGHT))
 
-    # Carregando a imagem de fundo das instruções aqui para evitar recarregar
-    instructions_background_img = pygame.image.load('recursos/mainImages/instrucoes.png').convert()
-    instructions_background_img = pygame.transform.scale(instructions_background_img, (WIDTH, HEIGHT))
-    
-    recordes_imagem = pygame.image.load("recursos/mainImages/recordes.png").convert()
-    recordes_imagem = pygame.transform.scale(recordes_imagem, (WIDTH, HEIGHT))
-    
-except pygame.error as e:
-    print(f"Erro crucial ao carregar imagem de fundo: {e}.")
-    print("Verifique se a pasta 'mainImages' e as imagens essenciais existem.")
-    pygame.quit()
-    sys.exit()
+pygame.mixer.music.load("recursos/mainSounds/musicaPrincipal.mp3")
+
+menu_background_img = pygame.image.load('recursos/mainImages/menu.png').convert()
+menu_background_img = pygame.transform.scale(menu_background_img, (WIDTH, HEIGHT))
+
+game_over_bg_img = pygame.image.load("recursos/mainImages/gameover.png").convert()
+game_over_bg_img = pygame.transform.scale(game_over_bg_img, (WIDTH, HEIGHT))
+
+# Carregando a imagem de fundo das instruções aqui para evitar recarregar
+instructions_background_img = pygame.image.load('recursos/mainImages/instrucoes.png').convert()
+instructions_background_img = pygame.transform.scale(instructions_background_img, (WIDTH, HEIGHT))
+
+recordes_imagem = pygame.image.load("recursos/mainImages/recordes.png").convert()
+recordes_imagem = pygame.transform.scale(recordes_imagem, (WIDTH, HEIGHT))
+
 
 
 CLOCK = pygame.time.Clock()
 FPS = 60
-GRAVITY_PLAYER = 1.0 # Gravidade específica do jogador, diferente do GRAVITY global original
+GRAVITY_PLAYER = 1.0 # Gravidade específica do jogador
 
 max_horizontal_gap = 150
 max_vertical_gap = 120
@@ -60,10 +58,11 @@ max_vertical_gap = 120
 pygame.mixer.init()
 try:
     coin_sound = pygame.mixer.Sound("recursos/mainSounds/coin.mp3")
-    coin_sound.set_volume(0.3)
+    coin_sound.set_volume(0.6)
     gameover_sound = pygame.mixer.Sound("recursos/mainSounds/gameover.mp3")
+    gameover_sound.set_volume(1.2)
     jump_sound = pygame.mixer.Sound("recursos/mainSounds/jump.mp3")
-    jump_sound.set_volume(0.3)
+    jump_sound.set_volume(0.6)
 except pygame.error as e:
     print(f"Aviso: Erro ao carregar som: {e}. O jogo continuará sem alguns sons.")
 
@@ -195,7 +194,7 @@ class Player(pygame.sprite.Sprite):
         self.jump_timer = 0
         self.jump_timer_max = 10
 
-    def update(self, platforms): # lógica original
+    def update(self, platforms): 
         keys = pygame.key.get_pressed()
         moved = False
         if keys[pygame.K_a]:
@@ -299,7 +298,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.y += self.dir_y * self.speed_y
         if self.rect.left <= 0 or self.rect.right >= WIDTH:
             self.dir_x *= -1
-        if self.rect.top <= 0: # condição original
+        if self.rect.top <= 0: 
             self.dir_y *= -1
         if self.rect.top > HEIGHT: 
             pass 
@@ -336,7 +335,7 @@ class Vagalume(pygame.sprite.Sprite):
         if self.rect.top <= 0 or self.rect.bottom >= HEIGHT:
             self.dir_y *= -1
 
-# ---  Funções Originais de UI (draw_text, button) ---
+# ---  Funções de UI (draw_text, button) ---
 
 def draw_text(text, font, color, x, y, center=False): 
     surface = font.render(text, True, color)
@@ -375,7 +374,6 @@ def button(text, x, y, width, height):
 
     return action
 
-
 # --- Novas Telas e Funções Auxiliares para Menus ---
 def ui_button_enhanced(text, x, y, width, height, font_to_use=FONT_MEDIUM, base_color=(30,30,60), hover_color=(70,70,120)):
     """Função de botão aprimorada para menus, apenas desenha e indica hover."""
@@ -389,6 +387,7 @@ def ui_button_enhanced(text, x, y, width, height, font_to_use=FONT_MEDIUM, base_
     return is_hovered
 
 def get_player_name_screen():
+    stop_signal = threading.Event() # Evento para parar a thread de voz
     player_name_str = ""
     input_field_rect = pygame.Rect(WIDTH / 2 - 200, HEIGHT / 2 - 25, 400, 50)
     error_message_str = ""
@@ -396,6 +395,8 @@ def get_player_name_screen():
 
     btn_confirm_rect = pygame.Rect(WIDTH / 2 - 100 - 10, input_field_rect.bottom + 40, 200, 55)
     btn_back_rect = pygame.Rect(WIDTH / 2 + 10, input_field_rect.bottom + 40, 200, 55)
+    
+    stop_thread_event = threading.Event() # Evento para parar a thread de voz
 
     total_width_btns = 200 + 20 + 200
     start_x_btns = WIDTH/2 - total_width_btns/2
@@ -406,26 +407,25 @@ def get_player_name_screen():
         engine.say(texto)
         engine.runAndWait()
 
-    def ouvir_nome():
+    def ouvir_nome(stop_event):
         nonlocal player_name_str
         recognizer = sr.Recognizer()
         with sr.Microphone() as source:
-            try:
-                falar("Qual é o seu nome, jogador? Fale claramente ou escreva no cammpo abaixo.")
-                audio = recognizer.listen(source, timeout=10, phrase_time_limit=4)
-                nome = recognizer.recognize_google(audio, language='pt-BR')
-                time.sleep(2)
-                player_name_str = nome.capitalize()
-                falar("Entendi o seu nome. Tudo pronto para começar! clique em começar.")
-            except sr.WaitTimeoutError:
-                falar("Você não falou nada. Tente novamente.")
-            except sr.UnknownValueError:
-                falar("Desculpe, não entendi o seu nome.")
-            except Exception as e:
-                print(f"Erro no reconhecimento de voz: {e}")
-                falar("Ocorreu um erro ao tentar ouvir você.")
-        # Executa a voz e a escuta em paralelo
-    threading.Thread(target=ouvir_nome, daemon=True).start()
+            falar("Qual é o seu nome, jogador? Fale claramente ou escreva no campo abaixo.")
+            
+            # O loop verifica o sinal antes de tentar ouvir
+            while not stop_event.is_set():
+                try:
+                    audio = recognizer.listen(source, timeout=3) # Ouve por até 3 segundos
+                    nome = recognizer.recognize_google(audio, language='pt-BR')
+                    player_name_str = nome.capitalize()
+                    falar("Clique em confirmar para começar.")
+                    break # Para o loop se o nome foi reconhecido
+                except sr.WaitTimeoutError:
+                    continue # Se ninguém falou nada, o loop continua e verifica o sinal de novo
+                except:
+                    break # Para o loop em caso de outros erros
+    threading.Thread(target=ouvir_nome, args=(stop_signal,), daemon=True).start()
 
     screen_active = True
     while screen_active:
@@ -447,10 +447,16 @@ def get_player_name_screen():
                     else: error_message_str = f"Máximo de {max_name_len} caracteres."
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if btn_confirm_rect.collidepoint(event.pos):
-                    if len(player_name_str.strip()) > 0: pygame.time.delay(100); return player_name_str.strip()
-                    else: error_message_str = "Nome deve ter pelo menos 1 caractere!"
+                    if len(player_name_str.strip()) > 0:
+                        stop_signal.set()  # Para parar a thread de voz
+                        pygame.time.delay(100)
+                        return player_name_str.strip()
+                    else: 
+                        error_message_str = "Nome deve ter pelo menos 1 caractere!"
                 elif btn_back_rect.collidepoint(event.pos):
-                    pygame.time.delay(100); return None
+                    stop_signal.set()  # Para parar a thread de voz
+                    pygame.time.delay(100)
+                    return None
 
         pygame.draw.rect(SCREEN, INPUT_BOX_COLOR, input_field_rect, border_radius=10)
         name_surf = FONT_MEDIUM.render(player_name_str, True, INPUT_TEXT_COLOR)
@@ -566,7 +572,7 @@ def instructions_menu():
             draw_text(line, FONT_SMALL, (0,0,0), WIDTH // 2 + 2, y_start_txt + i * line_spacing_txt + 2, center=True) # Sombra
             draw_text(line, FONT_SMALL, YELLOW, WIDTH // 2, y_start_txt + i * line_spacing_txt, center=True)
         
-        button("Voltar", btn_back_rect.x, btn_back_rect.y, btn_back_rect.width, btn_back_rect.height) # Seu botão
+        button("Voltar", btn_back_rect.x, btn_back_rect.y, btn_back_rect.width, btn_back_rect.height) 
         pygame.display.flip()
         CLOCK.tick(FPS)
         
@@ -640,12 +646,14 @@ def pause_menu():
             draw_text(option_txt, FONT_SMALL, BLACK, r.centerx, r.centery, center=True) # Texto do botão
         
         pygame.display.flip()
-        CLOCK.tick(FPS) # Manter FPS para menu responsivo
+        CLOCK.tick(FPS) 
 
-# --- SEU GAME LOOP  ---
+# --- GAME LOOP  ---
 def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
+    
     # Carrega o ícone da moeda e prepara para a animação de pulsar
     coin_icon_original = pygame.image.load("recursos/frames/CoinFrame/frame_0.png").convert_alpha()
+    
     
     pulse_angle = 0
     pulse_speed = 0.05
@@ -698,11 +706,11 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
         ey = random.randint(100, HEIGHT - 140)
         enemies.add(Enemy(ex, ey, enemy_speed_min, enemy_speed_max))
 
-    # Adiciona diamantes decorativos
+    # Adiciona vagalumes  decorativos
     for _ in range(3): # Adiciona (x) vagalumes decorativos
-        dx = random.randint(0, WIDTH - 30)
-        dy = random.randint(100, HEIGHT - 100)
-        vagalumes.add(Vagalume(dx, dy))
+        Vx = random.randint(0, WIDTH - 30)
+        Vy = random.randint(100, HEIGHT - 100)
+        vagalumes.add(Vagalume(Vx, Vy))
 
     player = Player(WIDTH // 2, HEIGHT - 100, player_speed)
     for p in platforms: # Marca o chão inicial como visitado
@@ -757,7 +765,6 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
                 enemy_sprite.rect.y += diff
                 if enemy_sprite.rect.top > HEIGHT: # Se o inimigo saiu da tela por baixo
                     enemies.remove(enemy_sprite)
-
 
             # Loop para mover moedas e remover as que saem da tela
             for coin_sprite in list(coins):
@@ -831,7 +838,7 @@ def game_loop(player_speed, enemy_speed_min, enemy_speed_max):
         pygame.display.flip()
         CLOCK.tick(FPS)
     # Fim do loop while True do jogo
-    return player.score, moedas, False # Retorno padrão se o loop terminar por outra razão improvável aqui
+   
 
 
 # --- GAME_OVER  ---
@@ -868,16 +875,12 @@ def game_over_screen_original(current_score, collected_coins, difficulty_setting
                 if e.key == pygame.K_r: return True # Reiniciar
                 if e.key == pygame.K_ESCAPE: return False 
             if e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
-                # A função button original tem seu próprio delay e update.
-                # Para consistência com o clique único, verificamos a colisão aqui.
                 if btn_restart_rect.collidepoint(e.pos):
-                    # O button original faz o display.update(rect) e time.delay(100)
-                    # Para evitar isso aqui e deixar o flip principal cuidar, não chamamos o button para checar o clique
                     pygame.time.delay(100) # Adicionando o delay aqui
                     return True 
                 if btn_exit_rect.collidepoint(e.pos):
                     pygame.time.delay(100)
-                    return False # Modificado para retornar False para ir ao menu, em vez de sys.exit()
+                    return False 
 
         # Desenha os textos e botões
         draw_text_shadow(f"{player_name_for_display}, sua pontuação foi: {current_score}", FONT_SMALL, WHITE, WIDTH//2, HEIGHT//4 + 40)
@@ -895,26 +898,30 @@ def game_over_screen_original(current_score, collected_coins, difficulty_setting
 
 # --- Loop Principal do Jogo (main) ---
 def main():
-    current_player_name = "Jogador" # Nome padrão
+    current_player_name = None 
 
     while True: # Loop da aplicação (volta para o menu principal)
-        action_from_main_menu = main_menu() #  função main_menu
+        action_from_main_menu = main_menu()
 
         if action_from_main_menu == "start_game":
-            name_entered = get_player_name_screen()
-            if name_entered is None: # Usuário clicou em "Voltar" na tela de nome
-                continue # Volta para o main_menu
-            current_player_name = name_entered
+            if current_player_name is None:
+                name_entered = get_player_name_screen()
+                if name_entered is None: 
+                    continue 
+                current_player_name = name_entered
        
+        difficulty_config = select_difficulty()
+        if difficulty_config is None:
+            continue
 
-        difficulty_config = select_difficulty() # função select_difficulty
-        if difficulty_config is None: # Usuário apertou ESC na seleção de dificuldade
-            continue # Volta para o main_menu
+        # 1. A MÚSICA COMEÇA AQUI, APENAS UMA VEZ, ANTES DE COMEÇAR A JOGAR.
+        pygame.mixer.music.play(-1)
 
         # Loop de Jogo (permite reiniciar o jogo na mesma dificuldade)
         play_again = True
         while play_again:
-            # game_loop retorna: score, moedas, saiu_para_menu_pelo_pause (booleano)
+            # O comando para tocar a música não está mais aqui.
+
             score, moedas, exited_from_pause = game_loop(
                 PLAYER_SPEED, 
                 difficulty_config["enemy_speed_min"], 
@@ -922,18 +929,25 @@ def main():
             )
 
             if exited_from_pause: # Se saiu do jogo pelo menu de pausa
-                play_again = False # Não vai para game_over, volta para o menu principal
-                break # Sai do loop `while play_again`
+                pygame.mixer.music.stop()
+                play_again = False
+                break 
 
-            # Se o jogo terminou normalmente (não por pausa para sair)
             update_and_save_game_score(current_player_name, score, moedas)
             
-            # Exibe a tela de game over
             should_restart = game_over_screen_original(score, moedas, difficulty_config, current_player_name)
             
-            if not should_restart: # Se o jogador escolheu "Sair para Menu" ou pressionou ESC
-                play_again = False # Interrompe o loop de "jogar novamente"
-            # Se should_restart for True (pressionou R), o loop `while play_again` continua
+            if not should_restart: # Se o jogador escolheu "Menu" na tela de Game Over
+                pygame.mixer.music.stop()
+                play_again = False 
+            else:
+                # 2. SE CLICAR EM REINICIAR, NÃO FAZ NADA.
+                #    O loop `while play_again` vai continuar, e como não há
+                #    nenhum comando `play` ou `stop`, a música continua tocando
+                #    de onde parou, sem interrupções.
+                pass
+
+# --- Fim da função main ---
 
 if __name__ == "__main__":
     pygame.init() # Garante que está inicializado
