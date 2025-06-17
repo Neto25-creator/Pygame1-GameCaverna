@@ -1,12 +1,26 @@
 {
     "high_score": {
-        "name": "\u00canio",
-        "score": 13,
+        "name": "Tino",
+        "score": 14,
         "coins": 3,
         "data": "17/06/2025",
-        "hora": "15:51:12"
+        "hora": "19:35:15"
     },
     "recent_scores": [
+        {
+            "name": "Tino",
+            "score": 14,
+            "coins": 3,
+            "data": "17/06/2025",
+            "hora": "19:35:15"
+        },
+        {
+            "name": "Tino",
+            "score": 4,
+            "coins": 1,
+            "data": "17/06/2025",
+            "hora": "19:34:55"
+        },
         {
             "name": "\u00canio",
             "score": 13,

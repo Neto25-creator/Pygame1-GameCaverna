@@ -51,3 +51,6 @@ Escape da Caverna é um jogo de plataforma vertical em que o jogador deve subir 
 
 Testador: Naubert Piva Migliavacca
 RA: 1138130
+
+Testador: Tino Markus Bueno Navarro
+RA: 1138028
