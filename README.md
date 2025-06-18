@@ -1,7 +1,7 @@
 # 🕹️ Escape da Caverna
 
 ### Desenvolvedor  
-**Ênio Muliterno Neto**  
+**Enio Muliterno Neto**  
 **RA:** 1138165
 
 ---
