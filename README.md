@@ -54,3 +54,5 @@ RA: 1138130
 
 Testador: Tino Markus Bueno Navarro
 RA: 1138028
+
+Obs: professor, acabei realizando commits repetidos no começo. Não consegui apagar. favor desconsiderar.
